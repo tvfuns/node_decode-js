@@ -1,13 +1,16 @@
 {
   "name": "decode-js",
   "type": "module",
+  "engines": {
+    "node": "26.x"
+  },
   "scripts": {
     "decode": "node src/main.js",
     "deob": "node src/main.js -t obfuscator",
     "deso": "node src/main.js -t sojson",
     "desov7": "node src/main.js -t sojsonv7",
     "test": "vitest --config vitest.config.js",
-    "lint": "eslint --ext .js --fix src"
+    "lint": "eslint --fix src"
   },
   "dependencies": {
     "@babel/generator": "^8.0.0",
