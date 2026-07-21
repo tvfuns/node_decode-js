@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { parseArgs } from 'node:util'
 import PluginCommon from './plugin/common.js'
 import PluginJjencode from './plugin/jjencode.js'
 import PluginSojson from './plugin/sojson.js'
@@ -6,48 +7,65 @@ import PluginSojsonV7 from './plugin/sojsonv7.js'
 import PluginObfuscator from './plugin/obfuscator.js'
 import PluginAwsc from './plugin/awsc.js'
 
-// 读取参数
-let type = 'common'
-let encodeFile = 'input.js'
-let decodeFile = 'output.js'
-for (let i = 2; i < process.argv.length; i += 2) {
-  if (process.argv[i] === '-t') {
-    type = process.argv[i + 1]
-  }
-  if (process.argv[i] === '-i') {
-    encodeFile = process.argv[i + 1]
-  }
-  if (process.argv[i] === '-o') {
-    decodeFile = process.argv[i + 1]
-  }
+// Read arguments
+const { values } = parseArgs({
+  options: {
+    type: { type: 'string', short: 't', default: 'common' },
+    input: { type: 'string', short: 'i', default: 'input.js' },
+    output: { type: 'string', short: 'o', default: 'output.js' },
+  },
+})
+const type = values.type
+const encodeFile = values.input
+const decodeFile = values.output
+console.log(`Type: ${type}`)
+console.log(`Input: ${encodeFile}`)
+console.log(`Output: ${decodeFile}`)
+
+const plugins = {
+  common: PluginCommon,
+  jjencode: PluginJjencode,
+  sojson: PluginSojson,
+  sojsonv7: PluginSojsonV7,
+  obfuscator: PluginObfuscator,
+  awsc: PluginAwsc,
 }
-console.log(`类型: ${type}`)
-console.log(`输入: ${encodeFile}`)
-console.log(`输出: ${decodeFile}`)
 
 const main = () => {
-  // 读取源代码
-  const sourceCode = fs.readFileSync(encodeFile, { encoding: 'utf-8' })
-
-  // 净化源代码
-  let code
-  if (type === 'sojson') {
-    code = PluginSojson(sourceCode)
-  } else if (type === 'sojsonv7') {
-    code = PluginSojsonV7(sourceCode)
-  } else if (type === 'obfuscator') {
-    code = PluginObfuscator(sourceCode)
-  } else if (type === 'awsc') {
-    code = PluginAwsc(sourceCode)
-  } else if (type === 'jjencode') {
-    code = PluginJjencode(sourceCode)
-  } else {
-    code = PluginCommon(sourceCode)
+  // Validate the type
+  if (!Object.hasOwn(plugins, type)) {
+    console.error(
+      `Unknown type: ${type}. Valid values: ${Object.keys(plugins).join(', ')}`,
+    )
+    process.exitCode = 1
+    return
   }
 
-  // 输出代码
-  if (code) {
-    fs.writeFile(decodeFile, code, () => {})
+  // Read the source code
+  let sourceCode
+  try {
+    sourceCode = fs.readFileSync(encodeFile, { encoding: 'utf-8' })
+  } catch (e) {
+    console.error(`Cannot read input file ${encodeFile}: ${e.message}`)
+    process.exitCode = 1
+    return
+  }
+
+  // Purify the source code
+  const code = plugins[type](sourceCode)
+
+  // Write the output
+  if (!code) {
+    console.error('Purification failed; no output written')
+    process.exitCode = 1
+    return
+  }
+  try {
+    fs.writeFileSync(decodeFile, code)
+    console.log(`Output written: ${decodeFile}`)
+  } catch (e) {
+    console.error(`Cannot write output file ${decodeFile}: ${e.message}`)
+    process.exitCode = 1
   }
 }
 
