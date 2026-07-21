@@ -1,8 +1,6 @@
 import { parse } from '@babel/parser'
-import _generate from '@babel/generator'
-const generator = _generate.default
-import _traverse from '@babel/traverse'
-const traverse = _traverse.default
+import generator from '@babel/generator'
+import traverse from '@babel/traverse'
 import * as t from '@babel/types'
 
 function unpack(code) {

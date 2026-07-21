@@ -1,5 +1,4 @@
-import _generate from '@babel/generator'
-const generator = _generate.default
+import generator from '@babel/generator'
 import * as t from '@babel/types'
 
 /**

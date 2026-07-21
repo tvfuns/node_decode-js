@@ -2,10 +2,8 @@
  * For jsjiami.com.v7
  */
 import { parse } from '@babel/parser'
-import _generate from '@babel/generator'
-const generator = _generate.default || _generate
-import _traverse from '@babel/traverse'
-const traverse = _traverse.default || _traverse
+import generator from '@babel/generator'
+import traverse from '@babel/traverse'
 import * as t from '@babel/types'
 import ivm from 'isolated-vm'
 import PluginEval from './eval.js'
